@@ -36,4 +36,4 @@ I dati grezzi della banca dati **non sono inclusi** in questa repo: vanno scaric
 
 ## Licenza
 
-Da definire dall'autore. Il codice non ha ancora una licenza; i dati restano soggetti alle condizioni delle fonti sopra.
+Il codice e la dashboard sono rilasciati con licenza MIT (vedi `LICENSE`). La licenza non copre i dati: restano soggetti alle condizioni delle fonti elencate sopra (banca dati dell'Agenzia provinciale per la Protezione civile, ISTAT, OpenStreetMap).
