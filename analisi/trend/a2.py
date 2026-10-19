@@ -1,0 +1,31 @@
+import pandas as pd, numpy as np, statsmodels.formula.api as smf
+pd.set_option('display.width',200); pd.set_option('display.max_columns',30)
+p=pd.read_pickle('p.pkl')
+d=p[(p.anno>=2021)&(p.conseguenza!='non noto')].copy()
+h=d[(d.attivita=='Escursionismo')&(d.eta!='non noto')&(d.sesso!='non noto')].copy()
+top=['Caduta, inciampo, scivolamento','Malore','Cuore/circolazione','Sfinimento','Perdita orientamento, fuorivia','Attrezzatura inidonea, incapacità']
+h['c']=h.causa.where(h.causa.isin(top),'Altro/resto')
+h['quota_k']=h.quota_m/1000; h['eta10']=h.eta_num/10
+h['M']=(h.sesso=='maschile').astype(int)
+h['naz']=h.nazionalita.replace({'Italia (Prov. di Bolzano)':'BZ','Italia (altre regioni)':'IT_altre','Germania':'DE'})
+h['naz']=h.naz.where(h.naz.isin(['BZ','IT_altre','DE']),'altri')
+h['estate']=h.mese.between(5,10).astype(int)
+print(len(h),h.morto.sum())
+print("\n== sesso x causa, hiking")
+print(pd.crosstab(h.sesso,h.c,normalize='index').mul(100).round(1))
+print("\n== morti per causa x sesso")
+print(h[h.morto==1].groupby(['c','sesso']).size().unstack(fill_value=0))
+m=smf.logit('morto ~ M + eta10 + C(c, Treatment("Caduta, inciampo, scivolamento")) + quota_k + C(salita_discesa) + C(naz) + estate',data=h.assign(salita_discesa=h.salita_discesa.replace('','ns'))).fit(disp=0)
+r=pd.DataFrame({'OR':np.exp(m.params),'lo':np.exp(m.conf_int()[0]),'hi':np.exp(m.conf_int()[1]),'p':m.pvalues}).round(3)
+print("\n== logit MORTE (escursionismo)"); print(r)
+m2=smf.logit('grave_o_morto ~ M + eta10 + C(c, Treatment("Caduta, inciampo, scivolamento")) + quota_k + C(salita_discesa) + C(naz) + estate',data=h.assign(salita_discesa=h.salita_discesa.replace('','ns'))).fit(disp=0)
+r=pd.DataFrame({'OR':np.exp(m2.params),'lo':np.exp(m2.conf_int()[0]),'hi':np.exp(m2.conf_int()[1]),'p':m2.pvalues}).round(3)
+print("\n== logit GRAVE/MORTO (escursionismo)"); print(r)
+# solo cadute: cosa predice la gravità?
+f=h[h.causa=='Caduta, inciampo, scivolamento']
+m3=smf.logit('grave_o_morto ~ M + eta10 + quota_k + C(salita_discesa) + C(naz) + estate',data=f.assign(salita_discesa=f.salita_discesa.replace('','ns'))).fit(disp=0)
+r=pd.DataFrame({'OR':np.exp(m3.params),'lo':np.exp(m3.conf_int()[0]),'hi':np.exp(m3.conf_int()[1]),'p':m3.pvalues}).round(3)
+print("\n== logit GRAVE/MORTO solo CADUTE (n=%d)"%len(f)); print(r)
+print("\n== cadute: gravi% per quota e per età")
+f=f.assign(qb=pd.cut(f.quota_m,[0,1000,1500,2000,2500,4000]))
+print(f.groupby('qb',observed=True).agg(n=('grave_o_morto','size'),gm=('grave_o_morto','mean'),m=('morto','mean'),eta=('eta_num','mean'),heli=('heli','mean')).mul([1,100,100,1,100]).round(1))

@@ -1,0 +1,5 @@
+__pycache__/
+*.pkl
+*.csv
+Dataset.json
+cache_quote.json

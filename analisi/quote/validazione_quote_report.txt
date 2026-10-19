@@ -1,0 +1,63 @@
+Eventi nel file: 11178
+====================================================================================================
+TEST 0 - coordinate sospette e controlli di coerenza (senza internet)
+====================================================================================================
+  punto ripetuto: 36 eventi, comuni: ['Corvara in Badia', 'Sesto'], quote: [1527.0, 1865.0, 2584.0], periodo 2021-07-05 -> 2026-08-15
+  segnaposto: 57 eventi, comuni: ['Bolzano'], quote: [275.0], periodo 2026-01-07 -> 2026-04-05
+  -> quote_sospette.csv
+  Nota: i 'punti ripetuti' sono spesso luoghi reali (rifugi, parcheggi, forcelle) dove il soccorso registra sempre la
+  stessa posizione. Per la quota va bene, ma significa che la coordinata non e' il punto esatto dell'incidente.
+
+Campione per i test A e B: 400 eventi, stratificato per fascia di quota, senza segnaposto.
+
+====================================================================================================
+TEST A - la quota cambia se la chiedo a un'altra fonte? (Copernicus 90 m e' indipendente da EU-DEM)
+====================================================================================================
+  EU-DEM (richiesta ora) - file      n=400  bias   +0.0 m | |err| mediano   0.6 m | p90   2.5 m | entro 10 m  100% | entro 25 m  100%
+  Copernicus 90 m - file             n=400  bias   +2.1 m | |err| mediano  10.0 m | p90  40.0 m | entro 10 m   51% | entro 25 m   81%
+  (la prima riga deve essere ~0: conferma che il file e' riproducibile)
+
+  Copernicus - file, per fascia di quota:
+  0-1000 m                           n=80   bias  +10.6 m | |err| mediano  12.0 m | p90  51.1 m | entro 10 m   46% | entro 25 m   76%
+  1000-1500 m                        n=80   bias   +5.7 m | |err| mediano   7.0 m | p90  29.3 m | entro 10 m   64% | entro 25 m   88%
+  1500-2000 m                        n=80   bias   +1.5 m | |err| mediano   7.0 m | p90  27.6 m | entro 10 m   59% | entro 25 m   89%
+  2000-2500 m                        n=80   bias   +2.1 m | |err| mediano   9.0 m | p90  21.0 m | entro 10 m   56% | entro 25 m   91%
+  2500-4000 m                        n=80   bias   -9.5 m | |err| mediano  19.0 m | p90  70.8 m | entro 10 m   31% | entro 25 m   60%
+
+  Eventi che cambierebbero fascia (1000/1500/2000/2500 m) usando Copernicus: 17/400 = 4.2%
+
+====================================================================================================
+TEST B - quanto cambia la quota se la posizione registrata e' sbagliata? (EU-DEM, 8 direzioni)
+====================================================================================================
+
+  Posizione spostata di 50 m:
+    tutti                n=400  variazione tipica (mediana 8 dir.): mediana  11.0 m, p90  27.6 m | caso peggiore: mediana  19.0 m, p90  46.5 m
+                         cambiano fascia in almeno una direzione: 9%  (fasce 1000/1500/2000/2500 m)
+    solo escursionismo   n=203  variazione tipica (mediana 8 dir.): mediana  10.9 m, p90  25.4 m | caso peggiore: mediana  19.4 m, p90  42.5 m
+                         cambiano fascia in almeno una direzione: 9%  (fasce 1000/1500/2000/2500 m)
+
+  Posizione spostata di 100 m:
+    tutti                n=400  variazione tipica (mediana 8 dir.): mediana  22.3 m, p90  50.8 m | caso peggiore: mediana  41.0 m, p90  91.7 m
+                         cambiano fascia in almeno una direzione: 15%  (fasce 1000/1500/2000/2500 m)
+    solo escursionismo   n=203  variazione tipica (mediana 8 dir.): mediana  21.8 m, p90  48.8 m | caso peggiore: mediana  42.0 m, p90  83.4 m
+                         cambiano fascia in almeno una direzione: 14%  (fasce 1000/1500/2000/2500 m)
+
+  Per fascia di quota (spostamento 100 m, variazione tipica / caso peggiore, mediana):
+    0-1000 m     n=80    25.2 m /  46.6 m
+    1000-1500 m  n=80    18.0 m /  36.7 m
+    1500-2000 m  n=80    17.9 m /  34.1 m
+    2000-2500 m  n=80    19.6 m /  36.1 m
+    2500-4000 m  n=80    34.3 m /  63.3 m
+
+====================================================================================================
+TEST C - le fonti altimetriche riproducono le quote note di rifugi, selle e cime? (tag 'ele' di OpenStreetMap)
+====================================================================================================
+  Punti OSM con quota nota: 8730 (usati 361)
+  EU-DEM - ele OSM (rifugio)         n=95   bias   -9.3 m | |err| mediano  10.1 m | p90  35.4 m | entro 10 m   48% | entro 25 m   84%
+  Copernicus - ele OSM (rifugio)     n=95   bias   -4.9 m | |err| mediano  13.0 m | p90  36.2 m | entro 10 m   43% | entro 25 m   78%
+  EU-DEM - ele OSM (sella)           n=133  bias  -15.9 m | |err| mediano  15.9 m | p90  50.1 m | entro 10 m   38% | entro 25 m   69%
+  Copernicus - ele OSM (sella)       n=133  bias  -12.8 m | |err| mediano  16.0 m | p90  54.6 m | entro 10 m   37% | entro 25 m   68%
+  EU-DEM - ele OSM (cima)            n=133  bias  -63.3 m | |err| mediano  55.9 m | p90 124.5 m | entro 10 m    4% | entro 25 m   14%
+  Copernicus - ele OSM (cima)        n=133  bias  -65.5 m | |err| mediano  57.0 m | p90 125.6 m | entro 10 m    7% | entro 25 m   22%
+  Come leggerla: rifugi e selle sono punti 'tipici' dove si cammina; sulle cime le fonti sottostimano sempre
+  (la vetta e' un picco stretto, la griglia lo smussa). Anche il tag 'ele' di OSM puo' essere impreciso.

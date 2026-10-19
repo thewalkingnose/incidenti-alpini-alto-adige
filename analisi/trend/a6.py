@@ -1,0 +1,51 @@
+import pandas as pd, numpy as np
+from scipy import stats
+import statsmodels.formula.api as smf
+pd.set_option('display.width',220); pd.set_option('display.max_columns',30)
+p=pd.read_pickle('p.pkl')
+IT=['Italia (Prov. di Bolzano)','Italia (altre regioni)']
+h=p[(p.attivita=='Escursionismo')&(p.anno.between(2022,2025))&p.nazionalita.isin(IT)].copy()
+print("N italiani hiking 2022-25:",len(h), " con esito noto:",(h.conseguenza!='non noto').sum())
+s=h[h.sesso!='non noto']; print("sesso %:",s.sesso.value_counts(normalize=True).mul(100).round(1).to_dict())
+k=h[(h.conseguenza!='non noto')&(h.sesso!='non noto')].copy()
+print("\n== ESITO per sesso (italiani)")
+t=k.groupby('sesso').agg(n=('morto','size'),morti=('morto','sum'),letalita=('morto','mean'),gm=('grave_o_morto','mean'),lieve=('conseguenza',lambda x:(x=='lievemente ferito').mean()),indenne=('indenne','mean'),heli=('heli','mean'),eta=('eta_num','mean'))
+t[['letalita','gm','lieve','indenne','heli']]*=100; print(t.round(1))
+for lab,col in [('morto','morto'),('grave+morto','grave_o_morto')]:
+    tt=pd.crosstab(k.sesso,k[col]); print(lab,'chi2/fisher p=',round(stats.fisher_exact(tt)[1],6))
+print("\n== ESITO per sesso x causa (grave+morto %) italiani")
+top=['Caduta, inciampo, scivolamento','Malore','Cuore/circolazione','Sfinimento','Perdita orientamento, fuorivia','Attrezzatura inidonea, incapacità']
+k['c']=k.causa.where(k.causa.isin(top),'altro')
+t=k.groupby(['c','sesso']).agg(n=('morto','size'),gm=('grave_o_morto','mean'),morti=('morto','sum')); t['gm']=(t.gm*100).round(1); print(t.unstack())
+print("\n== sesso: composizione cause (%)"); print(pd.crosstab(k.sesso,k.c,normalize='index').mul(100).round(1)[top+['altro']])
+# regressione
+k['M']=(k.sesso=='maschile').astype(int); k['eta10']=k.eta_num/10; k['qk']=k.quota_m/1000; k['BZ']=(k.nazionalita==IT[0]).astype(int)
+k=k[k.eta_num.notna()]
+k['sd']=k.salita_discesa.replace('','ns')
+m=smf.logit('grave_o_morto ~ M + eta10 + C(c, Treatment("Caduta, inciampo, scivolamento")) + qk + C(sd) + BZ',k).fit(disp=0)
+print("\nlogit grave/morto: M OR=%.2f [%.2f-%.2f] p=%.4f"%(np.exp(m.params['M']),*np.exp(m.conf_int().loc['M']),m.pvalues['M']))
+m=smf.logit('morto ~ M + eta10 + C(c, Treatment("Caduta, inciampo, scivolamento")) + qk + C(sd) + BZ',k).fit(disp=0)
+print("logit morto: M OR=%.2f [%.2f-%.2f] p=%.4f"%(np.exp(m.params['M']),*np.exp(m.conf_int().loc['M']),m.pvalues['M']))
+print("\n== CADUTE per fascia età (italiani): quota delle cadute sul totale eventi della fascia e n")
+a=h[h.eta_num.notna()].copy(); a['fa']=pd.cut(a.eta_num,[0,20,40,60,100],labels=['0-19','20-39','40-59','60+'])
+a['cad']=a.causa.str.startswith('Caduta,').astype(int)
+a['eqp']=(a.causa=='Attrezzatura inidonea, incapacità').astype(int)
+print(a.groupby('fa',observed=True).agg(n=('cad','size'),cadute=('cad','sum'),cad_pct=('cad','mean'),eq_n=('eqp','sum'),eq_pct=('eqp','mean')).assign(cad_pct=lambda x:x.cad_pct*100,eq_pct=lambda x:x.eq_pct*100).round(1))
+a['over40']=(a.eta_num>=45).astype(int)  # fasce 40-49 = 45
+a['f40']=np.where(a.eta_num>=45,'40+','<40')
+tt=pd.crosstab(a.f40,a.cad); print(tt, "p=",round(stats.chi2_contingency(tt)[1],6)); print((tt[1]/tt.sum(axis=1)*100).round(1).to_dict())
+tt=pd.crosstab(a.f40,a.eqp); print((tt[1]/tt.sum(axis=1)*100).round(1).to_dict(),"p=",round(stats.chi2_contingency(tt)[1],6))
+print("\n== fasce decennali: % cadute e % attrezzatura inidonea (italiani)")
+b=h[h.eta!='non noto']; b=b.assign(cad=b.causa.str.startswith('Caduta,')*100, eqx=(b.causa=='Attrezzatura inidonea, incapacità')*100, orient=b.causa.str.startswith('Perdita')*100, sfin=(b.causa=='Sfinimento')*100)
+print(b.groupby('eta').agg(n=('cad','size'),cadute=('cad','mean'),attrezz=('eqx','mean'),orient=('orient','mean'),sfin=('sfin','mean')).round(1))
+print("\n== ATTREZZATURA INIDONEA per quota (italiani)")
+h['qb']=pd.cut(h.quota_m,[0,1500,2000,2500,4000])
+h['eqp']=(h.causa=='Attrezzatura inidonea, incapacità').astype(int)
+print(h.groupby('qb',observed=True).agg(n=('eqp','size'),eq_n=('eqp','sum'),eq_pct=('eqp','mean'),eta=('eta_num','mean')).assign(eq_pct=lambda x:x.eq_pct*100).round(1))
+hh=h[h.eta_num.notna()].assign(qk=lambda x:x.quota_m/1000, eta10=lambda x:x.eta_num/10)
+m=smf.logit('eqp ~ qk + eta10',hh).fit(disp=0); print(m.summary2().tables[1].round(3).iloc[:, [0,3,4,5]])
+print("età media di chi ha attrezzatura inidonea:",hh[hh.eqp==1].eta_num.mean().round(1)," vs altri:",hh[hh.eqp==0].eta_num.mean().round(1), " quota media:",hh[hh.eqp==1].quota_m.mean().round(0),"vs",hh[hh.eqp==0].quota_m.mean().round(0))
+print("\n== quota x età (italiani): età media per fascia di quota"); print(hh.groupby('qb',observed=True).eta_num.mean().round(1).to_dict())
+print("\n== eq% per età entro stessa fascia di quota (<2000 vs >=2000)")
+hh['hi']=np.where(hh.quota_m>=2000,'>=2000','<2000'); hh['yg']=np.where(hh.eta_num<45,'<45','45+')
+print(hh.groupby(['hi','yg']).agg(n=('eqp','size'),eq=('eqp','mean')).assign(eq=lambda x:(x.eq*100).round(1)))
