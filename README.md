@@ -1,7 +1,7 @@
 # Incidenti di soccorso alpino in Alto Adige (2020–2026)
 
 Dashboard interattiva e analisi dei dati sugli incidenti di soccorso alpino in provincia di Bolzano.
-Progetto collegato al video del canale YouTube *The Walking Nose*.
+Progetto collegato al video "La verità sugli incidenti in montagna" del canale YouTube *The Walking Nose*.
 
 **Dashboard:** apri `index.html` nel browser (è un file unico, funziona anche offline), oppure usa la versione online su GitHub Pages.
 
@@ -9,15 +9,14 @@ Progetto collegato al video del canale YouTube *The Walking Nose*.
 
 | Cartella | Contenuto |
 |---|---|
-| `index.html` | La dashboard: vista per quota, incroci tra caratteristiche, mappa di concentrazione. |
+| `index.html` | La dashboard: vista per quota, incrocio dati, heatmap. |
 | `dashboard/` | Come è costruita: template, preparazione dei dati, geometrie dei comuni. |
 | `analisi/quote/` | Calcolo della quota di ogni evento dal modello digitale del terreno e validazione. |
-| `analisi/vicinanza/` | Distanza degli eventi da rifugi, bivacchi, malghe e impianti (OpenStreetMap). |
-| `analisi/trend/` | Analisi dei trend 2022–2025 sull'escursionismo (regressioni, intervalli di confidenza). |
+| `analisi/vicinanza/` | Distanza degli eventi da rifugi, bivacchi, malghe e impianti (OpenStreetMap). Inconcludente |
 
 ## Fonti dei dati
 
-- **Incidenti:** banca dati degli incidenti alpini, Agenzia provinciale per la Protezione civile (Provincia autonoma di Bolzano), con interventi del Soccorso Alpino AVS e del CNSAS. Dati letti dal sito il 11 ottobre 2026; il 2026 arriva al 4 ottobre, il 2020 contiene solo novembre e dicembre. Link: https://info-afbs.provinz.bz.it/AUDB/
+- **Incidenti:** banca dati degli incidenti alpini, Agenzia provinciale per la Protezione civile (Provincia autonoma di Bolzano), con interventi del Soccorso Alpino AVS e del CNSAS. Dati letti dal sito l'11 ottobre 2026; il 2026 arriva al 4 ottobre, il 2020 contiene solo novembre e dicembre. Link: https://info-afbs.provinz.bz.it/AUDB/
 - **Quota:** modello EU-DEM (celle da 25 m) tramite OpenTopoData. Non è un dato della banca dati: è calcolato dalle coordinate registrate.
 - **Confini dei comuni:** ISTAT, licenza CC-BY, semplificati.
 - **Rifugi, bivacchi, malghe, impianti:** © contributori OpenStreetMap, licenza ODbL.
