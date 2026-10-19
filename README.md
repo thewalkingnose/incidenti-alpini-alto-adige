@@ -17,7 +17,7 @@ Progetto collegato al video del canale YouTube *The Walking Nose*.
 
 ## Fonti dei dati
 
-- **Incidenti:** banca dati degli incidenti alpini, Agenzia provinciale per la Protezione civile (Provincia autonoma di Bolzano), con interventi del Soccorso Alpino AVS e del CNSAS. Dati letti dal sito il 11 ottobre 2026; il 2026 arriva al 4 ottobre, il 2020 contiene solo novembre e dicembre.
+- **Incidenti:** banca dati degli incidenti alpini, Agenzia provinciale per la Protezione civile (Provincia autonoma di Bolzano), con interventi del Soccorso Alpino AVS e del CNSAS. Dati letti dal sito il 11 ottobre 2026; il 2026 arriva al 4 ottobre, il 2020 contiene solo novembre e dicembre. Link: https://info-afbs.provinz.bz.it/AUDB/
 - **Quota:** modello EU-DEM (celle da 25 m) tramite OpenTopoData. Non è un dato della banca dati: è calcolato dalle coordinate registrate.
 - **Confini dei comuni:** ISTAT, licenza CC-BY, semplificati.
 - **Rifugi, bivacchi, malghe, impianti:** © contributori OpenStreetMap, licenza ODbL.
@@ -32,7 +32,7 @@ Progetto collegato al video del canale YouTube *The Walking Nose*.
 
 ## Riproducibilità
 
-I dati grezzi della banca dati **non sono inclusi** in questa repo: vanno scaricati dal sito dell'Agenzia, nel rispetto delle sue condizioni di riuso. Gli script in `analisi/` leggono file CSV con nomi indicati nelle intestazioni e non girano senza di essi. `dashboard/build_data3.py` contiene percorsi locali dell'ambiente in cui è stato eseguito: è qui per trasparenza sul metodo, non è un comando da lanciare così com'è.
+I dati grezzi della banca dati **non sono inclusi** in questa repo: vanno scaricati dal sito dell'Agenzia (https://info-afbs.provinz.bz.it/AUDB/), nel rispetto delle sue condizioni di riuso. Gli script in `analisi/` leggono file CSV con nomi indicati nelle intestazioni e non girano senza di essi. `dashboard/build_data3.py` contiene percorsi locali dell'ambiente in cui è stato eseguito: è qui per trasparenza sul metodo, non è un comando da lanciare così com'è.
 
 ## Licenza
 
